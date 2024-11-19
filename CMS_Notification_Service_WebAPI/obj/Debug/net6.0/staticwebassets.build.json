@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "+/S4kQO3vGoFk6QrYdj9ral0Ac+VSGltEc3bsNNKxA0=",
+  "Source": "CM05_Notification_Service_WebAPI",
+  "BasePath": "_content/CM05_Notification_Service_WebAPI",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
