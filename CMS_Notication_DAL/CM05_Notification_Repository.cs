@@ -20,11 +20,10 @@ namespace CM05_Notication_DAL
 
         }
 
-        public List<Cm05Notificationmessage> GetAllData()
+        public async Task<List<Cm05Notificationmessage>> GetAllNotifications()
         {
-            var link_result_list = (from cm_not in context.Cm05Notificationmessages select cm_not).ToList();
-            //List<Cm05Notificationmessage> result_list = context.Cm05Notificationmessage.ToList();
-            return link_result_list;
+            return await context.Cm05Notificationmessages.ToListAsync();
+            
         }
 
         public async Task<Cm05Notificationmessage> GetNotificationMsgbyId(int id)
@@ -37,34 +36,55 @@ namespace CM05_Notication_DAL
 
         public async Task<Cm05Notificationmessage> CreateNotification(Cm05Notificationmessage notification)
         {
-            var result = context.Cm05Notificationmessages.Add(notification);
+            try
+            {
+                var result = context.Cm05Notificationmessages.Add(notification);
+                await context.SaveChangesAsync();
+                return result.Entity;
 
-            // Save changes to the database
-            await context.SaveChangesAsync();
-
-            // Return the newly created notification
-            return result.Entity;
+            }
+            catch(DbUpdateException ex)
+            {
+                throw new Exception("An error occurred while saving the notification", ex);
+            }
         }
 
         // Update an existing notification
         public async Task<Cm05Notificationmessage> UpdateNotification(Cm05Notificationmessage notification)
         {
-            var existingNotification = await context.Cm05Notificationmessages.FindAsync(notification.NotificationMessageId);
+            var existingNotification = await context.Cm05Notificationmessages
+                .FirstOrDefaultAsync(n => n.NotificationMessageId == notification.NotificationMessageId);
 
             if (existingNotification == null)
             {
                 return null;
             }
-
-            // Update fields
             existingNotification.NotificationSubject = notification.NotificationSubject;
+            existingNotification.NotificationHeading = notification.NotificationHeading;
+            existingNotification.NotificationFooter = notification.NotificationFooter;
             existingNotification.NotificationChannel = notification.NotificationChannel;
             existingNotification.NotificationBody = notification.NotificationBody;
+            existingNotification.UpdatedBy = notification.UpdatedBy;
+            existingNotification.UpdatedDate = notification.UpdatedDate;
+            existingNotification.RepeatEvery = notification.RepeatEvery;
+            existingNotification.NoOfTimesToRepeat = notification.NoOfTimesToRepeat;
+            existingNotification.RepeatNotification = notification.RepeatNotification;
+            existingNotification.UseDocumentTemplate = notification.UseDocumentTemplate;
+            existingNotification.DocumentTemplateId = notification.DocumentTemplateId;
 
-            // Save changes
-            await context.SaveChangesAsync();
 
-            return existingNotification;
+
+            try
+            {
+                await context.SaveChangesAsync();
+
+                return existingNotification;
+            }
+            catch(DbUpdateException ex)
+            {
+                throw new Exception("An error occurred while updating the notification", ex);
+            }
+            
         }
 
         public async Task<bool> DeleteNotification(int id)
@@ -75,8 +95,16 @@ namespace CM05_Notication_DAL
                 return false;
             }
             context.Cm05Notificationmessages.Remove(notificaiton);
-            await context.SaveChangesAsync();
-            return true;
+            try
+            {
+                await context.SaveChangesAsync();
+                return true;
+            }
+            catch (DbUpdateException ex)
+            {
+                throw new Exception("An error occurred while deleting the notification", ex);
+            }
+
         }
 
 

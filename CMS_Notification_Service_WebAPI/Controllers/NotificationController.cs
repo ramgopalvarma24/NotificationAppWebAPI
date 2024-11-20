@@ -17,41 +17,43 @@ namespace CM05_Notification_Service_WebAPI.Controllers
         }
 
         [HttpGet]
-        public JsonResult GetAllData()
+        public async Task<ActionResult<List<Cm05Notificationmessage>>> GetAllNotifications()
         {
-            List<Cm05Notificationmessage> res = new List<Cm05Notificationmessage>();
-            try
+            var notifications = await repository.GetAllNotifications();
+            if (notifications == null || notifications.Count == 0)
             {
-                res = repository.GetAllData();
+                return NotFound("No notifications found.");
             }
-            catch (Exception ex)
-            {
-                res = null;
-            }
-            return Json(res);
+
+            return Ok(notifications);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Cm05Notificationmessage>> GetNotification(int id)
+        public async Task<ActionResult<Cm05Notificationmessage>> GetNotificationById(int id)
         {
             var notification = await repository.GetNotificationMsgbyId(id);
 
             if (notification == null)
             {
-                return NotFound();
+                NotFound($"Notification with ID {id} not found.");
             }
 
-            return notification;
+            return Ok(notification);
         }
 
         [HttpPost]
         public async Task<ActionResult<Cm05Notificationmessage>> CreateNotification(Cm05Notificationmessage notification)
         {
             //notification.CreatedDate = DateTimeOffset.Now;
-            //notification.UpdatedDate = DateTimeOffset.Now;
-            var res = await repository.CreateNotification(notification);
+            //notification.UpdatedDate = DateTimeOffset.Now
 
-            return Json(res);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var createdNotification = await repository.CreateNotification(notification);
+            return CreatedAtAction(nameof(GetNotificationById), new { id = createdNotification.NotificationMessageId }, createdNotification);
 
         }
         //updateNotification
@@ -63,11 +65,15 @@ namespace CM05_Notification_Service_WebAPI.Controllers
             {
                 return BadRequest("Notification ID mismatch.");
             }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
             var updatedNotification = await repository.UpdateNotification(notification);
             if (updatedNotification == null)
             {
-                return NotFound();
+                return NotFound($"Notification with ID {id} not found.");
             }
 
             return Ok(updatedNotification);
@@ -80,7 +86,7 @@ namespace CM05_Notification_Service_WebAPI.Controllers
 
             if (!success)
             {
-                return NotFound();
+                return NotFound($"Notification with ID {id} not found.");
             }
             return NoContent();
 
